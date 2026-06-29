@@ -86,7 +86,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | Permission | Description | Default |
 |------------|-------------|-------------|
 | `autotreechop.use` | Use `/atc`, `/atc confirm`, and `/atc usage` commands | Everyone |
-| `autotreechop.tier.<name>` | Apply the matching tier's daily limits from `limit-tiers` (e.g. `autotreechop.tier.vip`). Highest `priority` tier wins. | None |
+| `autotreechop.tier.<key>` | Apply that tier's daily limits. `<key>` is the tier's key in `limit-tiers` (e.g. the `vip` tier → `autotreechop.tier.vip`). Highest `priority` tier wins. | None |
 | `autotreechop.other` | Toggle others' ATC status | OP |
 | `autotreechop.reload` | Reload config file | OP |
 | `autotreechop.updatechecker` | Receive update notifications | OP |

@@ -23,20 +23,20 @@ max-blocks-per-day: 500
 cooldownTime: 5
 
 # Tiered limits (replaces the old VIP system)
-# Grant a player a tier permission (e.g. with LuckPerms) and they'll use that
-# tier's limits instead of the defaults above. A player who holds several tier
-# permissions uses the one with the highest "priority". A player who holds none
+# Each tier's KEY below becomes its permission node automatically:
+#   "vip" -> autotreechop.tier.vip , "mvp" -> autotreechop.tier.mvp
+# Grant that permission (e.g. with LuckPerms) and the player uses this tier's
+# limits instead of the defaults above. A player who holds several tier
+# permissions uses the one with the highest "priority"; a player who holds none
 # falls back to the default limits above.
 # Set uses-per-day, blocks-per-day or cooldown to -1 for unlimited / no cooldown.
 limit-tiers:
   vip:
-    permission: autotreechop.tier.vip
     priority: 10
     uses-per-day: 150
     blocks-per-day: 2000
     cooldown: 2
   mvp:
-    permission: autotreechop.tier.mvp
     priority: 20
     uses-per-day: -1
     blocks-per-day: -1

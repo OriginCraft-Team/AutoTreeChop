@@ -51,6 +51,9 @@ public class Config {
     /** Sentinel value meaning "no limit" for any tier value (uses, blocks, cooldown). */
     public static final int UNLIMITED = -1;
 
+    /** Permission prefix automatically combined with each tier's key (e.g. {@code vip -> autotreechop.tier.vip}). */
+    public static final String TIER_PERMISSION_PREFIX = "autotreechop.tier.";
+
     /**
      * A daily-limit tier resolved from the {@code limit-tiers} config section.
      * Any of {@code usesPerDay}, {@code blocksPerDay} or {@code cooldown} may be
@@ -290,11 +293,8 @@ public class Config {
             String name = keyObj.toString();
             String base = "limit-tiers." + name + ".";
 
-            String permission = config.getString(base + "permission");
-            if (permission == null || permission.isBlank()) {
-                plugin.getLogger().warning("Skipping limit tier '" + name + "': missing 'permission'");
-                continue;
-            }
+            // The permission node is derived from the tier key, e.g. "vip" -> "autotreechop.tier.vip".
+            String permission = TIER_PERMISSION_PREFIX + name;
 
             int priority = config.getInt(base + "priority", 0);
             int uses = config.getInt(base + "uses-per-day", maxUsesPerDay);
