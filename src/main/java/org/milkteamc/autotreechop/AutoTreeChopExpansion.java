@@ -59,6 +59,12 @@ public class AutoTreeChopExpansion extends PlaceholderExpansion {
             return String.valueOf(plugin.getPlayerDailyBlocksBroken(playerUUID));
         } else if (params.equalsIgnoreCase("status")) {
             return String.valueOf(plugin.getPlayerConfig(playerUUID).isAutoTreeChopEnabled());
+        } else if (params.equalsIgnoreCase("uses_limit")) {
+            int limit = plugin.getPluginConfig().resolveLimits(player).usesPerDay();
+            return limit < 0 ? "∞" : String.valueOf(limit);
+        } else if (params.equalsIgnoreCase("blocks_limit")) {
+            int limit = plugin.getPluginConfig().resolveLimits(player).blocksPerDay();
+            return limit < 0 ? "∞" : String.valueOf(limit);
         }
 
         return null;

@@ -249,12 +249,10 @@ public class TreeChopUtils {
             return;
         }
 
-        if (!PermissionUtils.hasVipBlock(player, playerConfig, config)) {
-            if (playerConfig.getDailyBlocksBroken() + treeBlocks.size() > config.getMaxBlocksPerDay()) {
-                AutoTreeChop.sendMessage(player, MessageKeys.HIT_MAX_BLOCK);
-                sessionManager.clearTreeChopSession(playerUUID);
-                return;
-            }
+        if (!PermissionUtils.canBreakBlocks(player, playerConfig, config, treeBlocks.size())) {
+            AutoTreeChop.sendMessage(player, MessageKeys.HIT_MAX_BLOCK);
+            sessionManager.clearTreeChopSession(playerUUID);
+            return;
         }
 
         if (config.isToolDamage() && !hasEnoughDurability(tool, treeBlocks.size(), config)) {
@@ -515,11 +513,9 @@ public class TreeChopUtils {
                 batchSize,
                 (location, index) -> {
                     // Check daily limit if counting towards limit
-                    if (config.getLeafRemovalCountsTowardsLimit()) {
-                        if (!PermissionUtils.hasVipBlock(player, playerConfig, config)
-                                && playerConfig.getDailyBlocksBroken() >= config.getMaxBlocksPerDay()) {
-                            return false; // Stop processing - limit reached
-                        }
+                    if (config.getLeafRemovalCountsTowardsLimit()
+                            && !PermissionUtils.canBreakMoreBlocks(player, playerConfig, config)) {
+                        return false; // Stop processing - limit reached
                     }
 
                     Block leafBlock = location.getBlock();

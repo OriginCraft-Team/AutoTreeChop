@@ -34,7 +34,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 
 - Daily limits for usage and chopped blocks
 - Configurable cooldowns
-- VIP players can bypass limits with permission
+- Permission-based limit tiers — give ranks their own daily limits (set any value to `-1` for unlimited)
 
 ### 🛡️ Full Protection Plugin Support
 
@@ -86,7 +86,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | Permission | Description | Default |
 |------------|-------------|-------------|
 | `autotreechop.use` | Use `/atc`, `/atc confirm`, and `/atc usage` commands | Everyone |
-| `autotreechop.vip` | Ignore usage limits | OP |
+| `autotreechop.tier.<name>` | Apply the matching tier's daily limits from `limit-tiers` (e.g. `autotreechop.tier.vip`). Highest `priority` tier wins. | None |
 | `autotreechop.other` | Toggle others' ATC status | OP |
 | `autotreechop.reload` | Reload config file | OP |
 | `autotreechop.updatechecker` | Receive update notifications | OP |
@@ -104,6 +104,8 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | `%autotreechop_status%` | Whether ATC is enabled |
 | `%autotreechop_daily_uses%` | Times used today |
 | `%autotreechop_daily_blocks_broken%` | Tree blocks chopped today |
+| `%autotreechop_uses_limit%` | Daily use limit for the player's tier (`∞` if unlimited) |
+| `%autotreechop_blocks_limit%` | Daily block limit for the player's tier (`∞` if unlimited) |
 
 ---
 

@@ -14,8 +14,10 @@ permissions:
     default: true
   autotreechop.leaves:
     default: true
-  autotreechop.vip:
-    default: op
+  autotreechop.tier.vip:
+    default: false
+  autotreechop.tier.mvp:
+    default: false
   autotreechop.updatechecker:
     default: op
   autotreechop.other:

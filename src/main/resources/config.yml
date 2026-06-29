@@ -13,24 +13,34 @@ locale: en
 # If set to true, the plugin will automatically translate to the locale of the player (if there are translations present)
 use-player-locale: true
 
-# Tree Chopping setting
-# The number of times non-VIP players can chop down trees per day,
-# you can give everyone "autotreechop.vip" permission to disable it.
+# Tree Chopping setting (DEFAULT limits)
+# These apply to any player who does NOT match a tier in "limit-tiers" below.
+# The number of times a player can chop down trees per day. Use -1 for unlimited.
 max-uses-per-day: 50
-# Tree blocks that non-VIP players can chop down every day,
-# you can give everyone "autotreechop.vip" permission to disable it.
+# Tree blocks a player can chop down every day. Use -1 for unlimited.
 max-blocks-per-day: 500
 # Cooldown time (second), use 0 to disable
 cooldownTime: 5
 
-# VIP setting
-# If disable, VIP have unlimited usage
-limitVipUsage: false
-# Will only work when you enable limitVipUsage
-vip-uses-per-day: 100
-vip-blocks-per-day: 1000
-# Cooldown time for VIP users (second), use 0 to disable
-vipCooldownTime: 2
+# Tiered limits (replaces the old VIP system)
+# Grant a player a tier permission (e.g. with LuckPerms) and they'll use that
+# tier's limits instead of the defaults above. A player who holds several tier
+# permissions uses the one with the highest "priority". A player who holds none
+# falls back to the default limits above.
+# Set uses-per-day, blocks-per-day or cooldown to -1 for unlimited / no cooldown.
+limit-tiers:
+  vip:
+    permission: autotreechop.tier.vip
+    priority: 10
+    uses-per-day: 150
+    blocks-per-day: 2000
+    cooldown: 2
+  mvp:
+    permission: autotreechop.tier.mvp
+    priority: 20
+    uses-per-day: -1
+    blocks-per-day: -1
+    cooldown: 0
 
 # MySQL setting
 # If "useMysql: false", plugin will use SQLite
@@ -177,4 +187,4 @@ valid-soil-types:
   - ROOTED_DIRT
 
 # Configuration file version - DO NOT MODIFY
-config-version: 1
+config-version: 2

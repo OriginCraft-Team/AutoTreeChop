@@ -29,11 +29,11 @@ public class CooldownManager {
     public CooldownManager() {}
 
     public void setCooldown(Player player, UUID playerUUID, Config config) {
-        if (player.hasPermission("autotreechop.vip")) {
-            cooldowns.put(playerUUID, System.currentTimeMillis() + (config.getVipCooldownTime() * 1000L));
-        } else {
-            cooldowns.put(playerUUID, System.currentTimeMillis() + (config.getCooldownTime() * 1000L));
+        int cooldown = config.resolveLimits(player).cooldown();
+        if (cooldown < 0) {
+            cooldown = 0; // unlimited tier -> no cooldown
         }
+        cooldowns.put(playerUUID, System.currentTimeMillis() + (cooldown * 1000L));
     }
 
     public boolean isInCooldown(UUID playerUUID) {

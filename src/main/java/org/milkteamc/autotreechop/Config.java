@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,11 +41,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 
 public class Config {
 
     private static final DateTimeFormatter BACKUP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     private static final String CONFIG_VERSION_KEY = "config-version";
+
+    /** Sentinel value meaning "no limit" for any tier value (uses, blocks, cooldown). */
+    public static final int UNLIMITED = -1;
+
+    /**
+     * A daily-limit tier resolved from the {@code limit-tiers} config section.
+     * Any of {@code usesPerDay}, {@code blocksPerDay} or {@code cooldown} may be
+     * {@link #UNLIMITED} ({@code -1}) to mean "no limit" / "no cooldown".
+     */
+    public record LimitTier(
+            String name, String permission, int priority, int usesPerDay, int blocksPerDay, int cooldown) {}
 
     private final AutoTreeChop plugin;
     private YamlDocument config;
@@ -54,7 +67,7 @@ public class Config {
     private int maxUsesPerDay;
     private int maxBlocksPerDay;
     private int cooldownTime;
-    private int vipCooldownTime;
+    private List<LimitTier> limitTiers;
     private boolean stopChoppingIfNotConnected;
     private boolean stopChoppingIfDifferentTypes;
     private String residenceFlag;
@@ -67,9 +80,6 @@ public class Config {
     private String database;
     private String username;
     private String password;
-    private boolean limitVipUsage;
-    private int vipUsesPerDay;
-    private int vipBlocksPerDay;
     private int toolDamageDecrease;
     private boolean mustUseTool;
     private boolean defaultTreeChop;
@@ -196,7 +206,6 @@ public class Config {
         maxUsesPerDay = config.getInt("max-uses-per-day", 50);
         maxBlocksPerDay = config.getInt("max-blocks-per-day", 500);
         cooldownTime = config.getInt("cooldownTime", 5);
-        vipCooldownTime = config.getInt("vipCooldownTime", 2);
         stopChoppingIfNotConnected = config.getBoolean("stopChoppingIfNotConnected", false);
         stopChoppingIfDifferentTypes = config.getBoolean("stopChoppingIfDifferentTypes", false);
         residenceFlag = config.getString("residenceFlag", "build");
@@ -209,10 +218,6 @@ public class Config {
         database = config.getString("database", "example");
         username = config.getString("username", "root");
         password = config.getString("password", "abc1234");
-
-        limitVipUsage = config.getBoolean("limitVipUsage", false);
-        vipUsesPerDay = config.getInt("vip-uses-per-day", 100);
-        vipBlocksPerDay = config.getInt("vip-blocks-per-day", 1000);
 
         toolDamageDecrease = config.getInt("toolDamageDecrease", 1);
         mustUseTool = config.getBoolean("mustUseTool", false);
@@ -265,9 +270,41 @@ public class Config {
 
         logSaplingMapping = loadLogSaplingMapping();
 
+        limitTiers = loadLimitTiers();
+
         plugin.getLogger().info("Loaded " + logTypes.size() + " log types");
         plugin.getLogger().info("Loaded " + leafTypes.size() + " leaf types");
         plugin.getLogger().info("Loaded " + logSaplingMapping.size() + " log-sapling mappings");
+        plugin.getLogger().info("Loaded " + limitTiers.size() + " limit tiers");
+    }
+
+    private List<LimitTier> loadLimitTiers() {
+        List<LimitTier> tiers = new ArrayList<>();
+
+        var section = config.getSection("limit-tiers");
+        if (section == null) {
+            return tiers;
+        }
+
+        for (Object keyObj : section.getKeys()) {
+            String name = keyObj.toString();
+            String base = "limit-tiers." + name + ".";
+
+            String permission = config.getString(base + "permission");
+            if (permission == null || permission.isBlank()) {
+                plugin.getLogger().warning("Skipping limit tier '" + name + "': missing 'permission'");
+                continue;
+            }
+
+            int priority = config.getInt(base + "priority", 0);
+            int uses = config.getInt(base + "uses-per-day", maxUsesPerDay);
+            int blocks = config.getInt(base + "blocks-per-day", maxBlocksPerDay);
+            int cooldown = config.getInt(base + "cooldown", cooldownTime);
+
+            tiers.add(new LimitTier(name, permission, priority, uses, blocks, cooldown));
+        }
+
+        return tiers;
     }
 
     private Set<Material> loadMaterialSet(String path) {
@@ -355,8 +392,27 @@ public class Config {
         return cooldownTime;
     }
 
-    public int getVipCooldownTime() {
-        return vipCooldownTime;
+    public List<LimitTier> getLimitTiers() {
+        return limitTiers;
+    }
+
+    /**
+     * Resolves the daily-limit tier that applies to the given player. A player who
+     * holds several tier permissions gets the one with the highest {@code priority};
+     * a player who holds none falls back to the default limits (the top-level
+     * {@code max-uses-per-day} / {@code max-blocks-per-day} / {@code cooldownTime}).
+     */
+    public LimitTier resolveLimits(Player player) {
+        LimitTier best = null;
+        for (LimitTier tier : limitTiers) {
+            if (player.hasPermission(tier.permission()) && (best == null || tier.priority() > best.priority())) {
+                best = tier;
+            }
+        }
+        if (best != null) {
+            return best;
+        }
+        return new LimitTier("default", null, Integer.MIN_VALUE, maxUsesPerDay, maxBlocksPerDay, cooldownTime);
     }
 
     public boolean isStopChoppingIfNotConnected() {
@@ -405,18 +461,6 @@ public class Config {
 
     public String getPassword() {
         return password;
-    }
-
-    public boolean getLimitVipUsage() {
-        return limitVipUsage;
-    }
-
-    public int getVipUsesPerDay() {
-        return vipUsesPerDay;
-    }
-
-    public int getVipBlocksPerDay() {
-        return vipBlocksPerDay;
     }
 
     public int getToolDamageDecrease() {

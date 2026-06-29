@@ -23,17 +23,23 @@ import org.milkteamc.autotreechop.PlayerConfig;
 
 public class PermissionUtils {
 
-    // VIP limit checker
-    public static boolean hasVipUses(Player player, PlayerConfig playerConfig, Config config) {
-        if (!config.getLimitVipUsage()) return player.hasPermission("autotreechop.vip");
-        if (player.hasPermission("autotreechop.vip")) return playerConfig.getDailyUses() <= config.getVipUsesPerDay();
-        return false;
+    private PermissionUtils() {}
+
+    /** Whether the player can still use AutoTreeChop at least once more today. */
+    public static boolean canUseMore(Player player, PlayerConfig playerConfig, Config config) {
+        int limit = config.resolveLimits(player).usesPerDay();
+        return limit < 0 || playerConfig.getDailyUses() < limit;
     }
 
-    public static boolean hasVipBlock(Player player, PlayerConfig playerConfig, Config config) {
-        if (!config.getLimitVipUsage()) return player.hasPermission("autotreechop.vip");
-        if (player.hasPermission("autotreechop.vip"))
-            return playerConfig.getDailyBlocksBroken() <= config.getVipBlocksPerDay();
-        return false;
+    /** Whether the player can still break at least one more block today. */
+    public static boolean canBreakMoreBlocks(Player player, PlayerConfig playerConfig, Config config) {
+        int limit = config.resolveLimits(player).blocksPerDay();
+        return limit < 0 || playerConfig.getDailyBlocksBroken() < limit;
+    }
+
+    /** Whether breaking {@code count} more blocks would stay within the player's daily limit. */
+    public static boolean canBreakBlocks(Player player, PlayerConfig playerConfig, Config config, int count) {
+        int limit = config.resolveLimits(player).blocksPerDay();
+        return limit < 0 || playerConfig.getDailyBlocksBroken() + count <= limit;
     }
 }

@@ -49,22 +49,9 @@ public class UsageCommand {
         Player player = actor.asPlayer();
         org.milkteamc.autotreechop.PlayerConfig pConfig = plugin.getPlayerConfig(player.getUniqueId());
 
-        boolean isVip = player.hasPermission("autotreechop.vip");
-        boolean limitVip = config.getLimitVipUsage();
-
-        String maxUsesStr;
-        String maxBlocksStr;
-
-        if (!isVip) {
-            maxUsesStr = String.valueOf(config.getMaxUsesPerDay());
-            maxBlocksStr = String.valueOf(config.getMaxBlocksPerDay());
-        } else if (limitVip) {
-            maxUsesStr = String.valueOf(config.getVipUsesPerDay());
-            maxBlocksStr = String.valueOf(config.getVipBlocksPerDay());
-        } else {
-            maxUsesStr = "∞";
-            maxBlocksStr = "∞";
-        }
+        Config.LimitTier limits = config.resolveLimits(player);
+        String maxUsesStr = limits.usesPerDay() < 0 ? "∞" : String.valueOf(limits.usesPerDay());
+        String maxBlocksStr = limits.blocksPerDay() < 0 ? "∞" : String.valueOf(limits.blocksPerDay());
 
         AutoTreeChop.sendMessage(
                 player,
