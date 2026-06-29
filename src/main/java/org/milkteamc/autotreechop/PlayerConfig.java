@@ -23,13 +23,40 @@ import org.milkteamc.autotreechop.database.DatabaseManager;
 
 public class PlayerConfig {
 
+    /** Sentinel meaning the player's tier limits have not been resolved on the main thread yet. */
+    private static final int UNRESOLVED = Integer.MIN_VALUE;
+
     private final UUID playerUUID;
     private final DatabaseManager.PlayerData data;
     private boolean dirty = false;
 
+    // Last tier limits resolved on the main/region thread. Read by the PlaceholderAPI
+    // expansion, which may run asynchronously, so these are volatile and never trigger
+    // a (non-thread-safe) permission lookup off the main thread.
+    private volatile int cachedUsesLimit = UNRESOLVED;
+    private volatile int cachedBlocksLimit = UNRESOLVED;
+
     public PlayerConfig(UUID playerUUID, DatabaseManager.PlayerData data) {
         this.playerUUID = playerUUID;
         this.data = data;
+    }
+
+    /** Caches the player's currently resolved daily limits. Call only from the main/region thread. */
+    public void cacheResolvedLimits(int usesLimit, int blocksLimit) {
+        this.cachedUsesLimit = usesLimit;
+        this.cachedBlocksLimit = blocksLimit;
+    }
+
+    /** Cached daily use limit, or {@code fallback} if not resolved on the main thread yet. */
+    public int getCachedUsesLimit(int fallback) {
+        int value = cachedUsesLimit;
+        return value == UNRESOLVED ? fallback : value;
+    }
+
+    /** Cached daily block limit, or {@code fallback} if not resolved on the main thread yet. */
+    public int getCachedBlocksLimit(int fallback) {
+        int value = cachedBlocksLimit;
+        return value == UNRESOLVED ? fallback : value;
     }
 
     private void checkAndUpdateDate() {

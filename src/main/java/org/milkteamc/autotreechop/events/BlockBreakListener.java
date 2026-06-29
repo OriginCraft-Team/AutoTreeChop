@@ -44,7 +44,6 @@ import org.milkteamc.autotreechop.utils.ConfirmationManager;
 import org.milkteamc.autotreechop.utils.ConfirmationManager.ChopData;
 import org.milkteamc.autotreechop.utils.ConfirmationManager.ConfirmReason;
 import org.milkteamc.autotreechop.utils.EffectUtils;
-import org.milkteamc.autotreechop.utils.PermissionUtils;
 import org.milkteamc.autotreechop.utils.ProtectionCheckUtils.ProtectionHooks;
 import org.milkteamc.autotreechop.utils.SessionManager;
 
@@ -109,12 +108,17 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        if (!PermissionUtils.canBreakMoreBlocks(player, playerConfig, config)) {
+        // Resolve the player's tier once on this main/region thread and cache it so the
+        // (possibly async) PlaceholderAPI limit placeholders never call hasPermission off-thread.
+        Config.LimitTier tier = config.resolveLimits(player);
+        playerConfig.cacheResolvedLimits(tier.usesPerDay(), tier.blocksPerDay());
+
+        if (tier.blocksPerDay() >= 0 && playerConfig.getDailyBlocksBroken() >= tier.blocksPerDay()) {
             EffectUtils.sendMaxBlockLimitReachedMessage(player, block);
             return;
         }
 
-        if (!PermissionUtils.canUseMore(player, playerConfig, config)) {
+        if (tier.usesPerDay() >= 0 && playerConfig.getDailyUses() >= tier.usesPerDay()) {
             AutoTreeChop.sendMessage(player, MessageKeys.HIT_MAX_USAGE);
             return;
         }

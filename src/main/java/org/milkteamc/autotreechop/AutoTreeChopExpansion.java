@@ -60,10 +60,14 @@ public class AutoTreeChopExpansion extends PlaceholderExpansion {
         } else if (params.equalsIgnoreCase("status")) {
             return String.valueOf(plugin.getPlayerConfig(playerUUID).isAutoTreeChopEnabled());
         } else if (params.equalsIgnoreCase("uses_limit")) {
-            int limit = plugin.getPluginConfig().resolveLimits(player).usesPerDay();
+            // Read the cached limit (refreshed on the main thread); fall back to the default
+            // tier so this never calls hasPermission off-thread when PAPI resolves async.
+            int limit = plugin.getPlayerConfig(playerUUID)
+                    .getCachedUsesLimit(plugin.getPluginConfig().getMaxUsesPerDay());
             return limit < 0 ? "∞" : String.valueOf(limit);
         } else if (params.equalsIgnoreCase("blocks_limit")) {
-            int limit = plugin.getPluginConfig().resolveLimits(player).blocksPerDay();
+            int limit = plugin.getPlayerConfig(playerUUID)
+                    .getCachedBlocksLimit(plugin.getPluginConfig().getMaxBlocksPerDay());
             return limit < 0 ? "∞" : String.valueOf(limit);
         }
 

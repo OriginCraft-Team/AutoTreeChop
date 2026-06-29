@@ -17,6 +17,8 @@
  
 package org.milkteamc.autotreechop.utils;
 
+import static org.bukkit.Statistic.MINE_BLOCK;
+
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
@@ -33,8 +35,6 @@ import org.milkteamc.autotreechop.AutoTreeChop;
 import org.milkteamc.autotreechop.Config;
 import org.milkteamc.autotreechop.MessageKeys;
 import org.milkteamc.autotreechop.PlayerConfig;
-
-import static org.bukkit.Statistic.MINE_BLOCK;
 
 public class TreeChopUtils {
 
@@ -354,8 +354,7 @@ public class TreeChopUtils {
                 () -> {
                     // After all logs are removed
                     if (config.isIncrementBlockStatistics()) {
-                        logStatCounts.forEach((mat, count) ->
-                                player.incrementStatistic(MINE_BLOCK, mat, count));
+                        logStatCounts.forEach((mat, count) -> player.incrementStatistic(MINE_BLOCK, mat, count));
                     }
 
                     if (config.isToolDamage()) {
@@ -507,14 +506,18 @@ public class TreeChopUtils {
         int batchSize = config.getLeafRemovalBatchSize();
         Map<Material, Integer> leafStatCounts = new HashMap<>();
 
+        // Resolve the player's block limit once up front instead of per leaf — the limit
+        // does not change mid-removal, only the running dailyBlocksBroken count does.
+        boolean enforceLimit = config.getLeafRemovalCountsTowardsLimit();
+        int blocksLimit = config.resolveLimits(player).blocksPerDay();
+
         batchProcessor.processBatchWithTermination(
                 leafList,
                 0,
                 batchSize,
                 (location, index) -> {
-                    // Check daily limit if counting towards limit
-                    if (config.getLeafRemovalCountsTowardsLimit()
-                            && !PermissionUtils.canBreakMoreBlocks(player, playerConfig, config)) {
+                    // Check daily limit if counting towards limit (blocksLimit < 0 means unlimited)
+                    if (enforceLimit && blocksLimit >= 0 && playerConfig.getDailyBlocksBroken() >= blocksLimit) {
                         return false; // Stop processing - limit reached
                     }
 
@@ -528,8 +531,7 @@ public class TreeChopUtils {
                 () -> {
                     // Flush accumulated leaf statistics
                     if (config.isIncrementBlockStatistics()) {
-                        leafStatCounts.forEach((mat, count) ->
-                                player.incrementStatistic(MINE_BLOCK, mat, count));
+                        leafStatCounts.forEach((mat, count) -> player.incrementStatistic(MINE_BLOCK, mat, count));
                     }
 
                     // Leaf removal complete - end session

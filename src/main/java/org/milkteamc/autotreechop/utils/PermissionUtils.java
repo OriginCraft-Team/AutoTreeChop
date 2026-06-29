@@ -25,18 +25,6 @@ public class PermissionUtils {
 
     private PermissionUtils() {}
 
-    /** Whether the player can still use AutoTreeChop at least once more today. */
-    public static boolean canUseMore(Player player, PlayerConfig playerConfig, Config config) {
-        int limit = config.resolveLimits(player).usesPerDay();
-        return limit < 0 || playerConfig.getDailyUses() < limit;
-    }
-
-    /** Whether the player can still break at least one more block today. */
-    public static boolean canBreakMoreBlocks(Player player, PlayerConfig playerConfig, Config config) {
-        int limit = config.resolveLimits(player).blocksPerDay();
-        return limit < 0 || playerConfig.getDailyBlocksBroken() < limit;
-    }
-
     /** Whether breaking {@code count} more blocks would stay within the player's daily limit. */
     public static boolean canBreakBlocks(Player player, PlayerConfig playerConfig, Config config, int count) {
         int limit = config.resolveLimits(player).blocksPerDay();

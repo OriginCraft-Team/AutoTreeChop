@@ -71,6 +71,7 @@ public class Config {
     private int maxBlocksPerDay;
     private int cooldownTime;
     private List<LimitTier> limitTiers;
+    private LimitTier defaultTier;
     private boolean stopChoppingIfNotConnected;
     private boolean stopChoppingIfDifferentTypes;
     private String residenceFlag;
@@ -274,6 +275,7 @@ public class Config {
         logSaplingMapping = loadLogSaplingMapping();
 
         limitTiers = loadLimitTiers();
+        defaultTier = new LimitTier("default", null, Integer.MIN_VALUE, maxUsesPerDay, maxBlocksPerDay, cooldownTime);
 
         plugin.getLogger().info("Loaded " + logTypes.size() + " log types");
         plugin.getLogger().info("Loaded " + leafTypes.size() + " leaf types");
@@ -401,18 +403,22 @@ public class Config {
      * holds several tier permissions gets the one with the highest {@code priority};
      * a player who holds none falls back to the default limits (the top-level
      * {@code max-uses-per-day} / {@code max-blocks-per-day} / {@code cooldownTime}).
+     *
+     * <p>A tier only applies when its permission has been <em>explicitly granted</em>
+     * ({@link Player#isPermissionSet}). This deliberately ignores Bukkit's behaviour
+     * of granting unregistered permission nodes to operators by default, so that an
+     * OP does not silently inherit every (unregistered) custom tier.
      */
     public LimitTier resolveLimits(Player player) {
         LimitTier best = null;
         for (LimitTier tier : limitTiers) {
-            if (player.hasPermission(tier.permission()) && (best == null || tier.priority() > best.priority())) {
+            if (player.isPermissionSet(tier.permission())
+                    && player.hasPermission(tier.permission())
+                    && (best == null || tier.priority() > best.priority())) {
                 best = tier;
             }
         }
-        if (best != null) {
-            return best;
-        }
-        return new LimitTier("default", null, Integer.MIN_VALUE, maxUsesPerDay, maxBlocksPerDay, cooldownTime);
+        return best != null ? best : defaultTier;
     }
 
     public boolean isStopChoppingIfNotConnected() {
