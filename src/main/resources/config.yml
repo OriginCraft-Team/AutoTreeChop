@@ -155,6 +155,7 @@ leaf-types:
   - PALE_OAK_LEAVES
   - WARPED_WART_BLOCK
   - NETHER_WART_BLOCK
+  - VINE
 
 # Replanting setting
 # Enable automatic sapling replanting after tree chopping

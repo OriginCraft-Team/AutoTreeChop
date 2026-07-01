@@ -40,6 +40,12 @@ public class TreeChopUtils {
 
     private static final Random random = new Random();
 
+    // Upper bound on the leaf-capture radius after growing it to cover a tall trunk (see
+    // executeTreeChop). captureLeafRegion scans a synchronous sphere on the main/region thread,
+    // so this protects against a pathologically tall "tree" (e.g. a stacked column of logs)
+    // turning into a multi-hundred-block synchronous scan.
+    private static final int MAX_LEAF_CAPTURE_RADIUS = 32;
+
     private final AutoTreeChop plugin;
     private final AsyncTaskScheduler scheduler;
     private final BatchProcessor batchProcessor;
@@ -292,17 +298,37 @@ public class TreeChopUtils {
 
         // CRITICAL: Capture leaf snapshot BEFORE removing logs
         // This ensures we can see which logs exist for proper leaf orphan detection
+        //
+        // The capture is centered on the VERTICAL MIDPOINT of the whole discovered trunk
+        // (not just the block the player broke), with the radius grown to cover the trunk's
+        // full height plus the configured margin. A fixed radius around the break point alone
+        // misses canopies on very tall trees (e.g. giant/mega jungle trees, 20-30 blocks tall)
+        // when the player starts chopping near the base.
         BlockSnapshot leafSnapshot = null;
+        Location leafCenter = originalBlock.getLocation();
+        int leafRadius = config.getLeafRemovalRadius();
         if (config.isLeafRemovalEnabled()) {
+            int minY = Integer.MAX_VALUE;
+            int maxY = Integer.MIN_VALUE;
+            for (Location loc : treeBlocks) {
+                minY = Math.min(minY, loc.getBlockY());
+                maxY = Math.max(maxY, loc.getBlockY());
+            }
+            int verticalSpan = maxY - minY;
+            leafCenter = originalBlock.getLocation().clone();
+            leafCenter.setY(minY + verticalSpan / 2.0);
+            leafRadius = Math.min(config.getLeafRemovalRadius() + (verticalSpan / 2), MAX_LEAF_CAPTURE_RADIUS);
+
             try {
-                leafSnapshot =
-                        BlockSnapshotCreator.captureLeafRegion(originalBlock, config.getLeafRemovalRadius(), config);
+                leafSnapshot = BlockSnapshotCreator.captureLeafRegion(leafCenter.getBlock(), leafRadius, config);
             } catch (Exception e) {
                 plugin.getLogger().warning("Error pre-capturing leaf snapshot: " + e.getMessage());
             }
         }
 
         BlockSnapshot finalLeafSnapshot = leafSnapshot;
+        Location finalLeafCenter = leafCenter;
+        int finalLeafRadius = leafRadius;
 
         Map<Material, Integer> logStatCounts = new HashMap<>();
         batchProcessor.processBatch(
@@ -364,12 +390,12 @@ public class TreeChopUtils {
                     // Handle leaf removal
                     if (config.isLeafRemovalEnabled() && finalLeafSnapshot != null) {
                         long delay = config.getLeafRemovalDelayTicks();
-                        Location leafProcessLocation = originalBlock.getLocation();
 
                         Runnable leafTask = () -> {
                             processLeafRemovalWithPreCapturedSnapshot(
                                     finalLeafSnapshot,
-                                    originalBlock.getLocation(),
+                                    finalLeafCenter,
+                                    finalLeafRadius,
                                     player,
                                     config,
                                     playerConfig,
@@ -377,7 +403,7 @@ public class TreeChopUtils {
                                     actuallyRemovedLogs);
                         };
 
-                        scheduler.scheduleDelayed(leafProcessLocation, leafTask, delay);
+                        scheduler.scheduleDelayed(finalLeafCenter, leafTask, delay);
                     }
 
                     // Handle replanting
@@ -418,6 +444,7 @@ public class TreeChopUtils {
     private void processLeafRemovalWithPreCapturedSnapshot(
             BlockSnapshot leafSnapshot,
             Location centerLocation,
+            int radius,
             Player player,
             Config config,
             PlayerConfig playerConfig,
@@ -451,7 +478,6 @@ public class TreeChopUtils {
                 // Use the provided removedLogs directly
                 // (already contains all actually removed logs from executeTreeChop)
                 Set<Location> leavesToRemove;
-                int radius = config.getLeafRemovalRadius();
 
                 // Choose discovery method based on radius and mode
                 if ("smart".equalsIgnoreCase(config.getLeafRemovalMode())) {
