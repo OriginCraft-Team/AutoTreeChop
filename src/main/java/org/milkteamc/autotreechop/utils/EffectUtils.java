@@ -41,6 +41,38 @@ public class EffectUtils {
                 .spawn();
     }
 
+    /**
+     * Block break particles for a block that AutoTreeChop removes with {@code setType(AIR)} rather
+     * than {@code breakNaturally()} — used by auto pickup, which reads the drops itself and would
+     * otherwise clear the block with no visual feedback at all.
+     *
+     * <p>Particles only: the break sound stays under the {@code playBreakSound} option so this does
+     * not double up on it.
+     */
+    public static void showBlockBreakEffect(Block block) {
+        if (!XMaterial.supports(13)) {
+            return;
+        }
+
+        try {
+            XMaterial blockMaterial = XMaterial.matchXMaterial(block.getType());
+            if (blockMaterial == null || blockMaterial.get() == null) {
+                return;
+            }
+
+            ParticleDisplay.of(XParticle.BLOCK)
+                    .withLocation(block.getLocation().add(0.5, 0.5, 0.5))
+                    .withBlock(blockMaterial.get().createBlockData())
+                    .withCount(15)
+                    .offset(0.3, 0.3, 0.3)
+                    .spawn();
+        } catch (NoSuchMethodError | UnsupportedOperationException e) {
+            // The BLOCK particle API changed between MC versions; XSeries could not provide a
+            // compatible implementation on this server. Purely cosmetic, so degrade gracefully.
+            LOGGER.fine("BLOCK particle unavailable for block break effect on this server version: " + e.getMessage());
+        }
+    }
+
     public static void showChopEffect(Player player, Block block) {
         ParticleDisplay.of(XParticle.HAPPY_VILLAGER)
                 .withLocation(block.getLocation().add(0.5, 0.5, 0.5))

@@ -19,6 +19,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 - Toggle on/off with `/atc` command or by sneaking (pressing SHIFT)
 - Async support for smooth performance on Modern servers
 - Customizable leaves cleaner
+- Optional auto pickup: send drops straight to the player's inventory, respecting Fortune and Silk Touch
 
 ### ⚡ Lightweight & Easy to Configure
 
@@ -92,6 +93,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | `autotreechop.updatechecker` | Receive update notifications | OP |
 | `autotreechop.replant` | Enable auto replanting | Everyone |
 | `autotreechop.leaves` | Enable leaves removal | Everyone |
+| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | Everyone |
 
 ---
 

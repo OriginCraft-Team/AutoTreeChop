@@ -24,6 +24,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.milkteamc.autotreechop.AutoTreeChop;
 import org.milkteamc.autotreechop.PlayerConfig;
+import org.milkteamc.autotreechop.utils.DropCollectionUtils;
 import org.milkteamc.autotreechop.utils.SessionManager;
 
 public class PlayerQuitListener implements Listener {
@@ -49,5 +50,7 @@ public class PlayerQuitListener implements Listener {
 
         // Clear all confirmation state so memory doesn't leak between sessions.
         plugin.getConfirmationManager().clearPlayer(playerUUID);
+
+        DropCollectionUtils.clearPlayerData(playerUUID);
     }
 }

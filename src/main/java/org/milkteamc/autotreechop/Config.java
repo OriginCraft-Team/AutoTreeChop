@@ -105,6 +105,7 @@ public class Config {
     private int maxDiscoveryBlocks;
     private boolean callBlockBreakEvent;
     private boolean incrementBlockStatistics;
+    private boolean autoPickupEnabled;
 
     public Config(AutoTreeChop plugin) {
         this.plugin = plugin;
@@ -229,6 +230,7 @@ public class Config {
         maxDiscoveryBlocks = config.getInt("max-discovery-blocks", 1000);
         callBlockBreakEvent = config.getBoolean("call-block-break-event", true);
         incrementBlockStatistics = config.getBoolean("increment-block-statistics", false);
+        autoPickupEnabled = config.getBoolean("enable-auto-pickup", false);
 
         autoReplantEnabled = config.getBoolean("enable-auto-replant", true);
         replantDelayTicks = config.getLong("replant-delay-ticks", 15L);
@@ -541,6 +543,10 @@ public class Config {
 
     public boolean isIncrementBlockStatistics() {
         return incrementBlockStatistics;
+    }
+
+    public boolean isAutoPickupEnabled() {
+        return autoPickupEnabled;
     }
 
     public int getIdleTimeoutSeconds() {
