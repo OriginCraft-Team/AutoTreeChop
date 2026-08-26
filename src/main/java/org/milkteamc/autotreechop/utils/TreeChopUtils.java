@@ -17,6 +17,8 @@
  
 package org.milkteamc.autotreechop.utils;
 
+import static org.bukkit.Statistic.MINE_BLOCK;
+
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
@@ -33,8 +35,6 @@ import org.milkteamc.autotreechop.AutoTreeChop;
 import org.milkteamc.autotreechop.Config;
 import org.milkteamc.autotreechop.MessageKeys;
 import org.milkteamc.autotreechop.PlayerConfig;
-
-import static org.bukkit.Statistic.MINE_BLOCK;
 
 public class TreeChopUtils {
 
@@ -307,6 +307,9 @@ public class TreeChopUtils {
         BlockSnapshot finalLeafSnapshot = leafSnapshot;
 
         Map<Material, Integer> logStatCounts = new HashMap<>();
+        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, config);
+        List<ItemStack> collectedDrops = new ArrayList<>();
+
         batchProcessor.processBatch(
                 blockList,
                 0,
@@ -343,7 +346,18 @@ public class TreeChopUtils {
                     if (config.getPlayBreakSound()) {
                         XSound.BLOCK_WOOD_BREAK.play(location, 1.0f, 1.0f);
                     }
-                    block.breakNaturally();
+
+                    if (autoPickup) {
+                        // Drops must be read before the block is cleared, otherwise it is already air.
+                        DropCollectionUtils.collectDrops(block, tool, player, collectedDrops);
+                        if (config.isVisualEffect()) {
+                            // breakNaturally() shows break particles for free; setType() does not.
+                            EffectUtils.showBlockBreakEffect(block);
+                        }
+                        block.setType(XMaterial.AIR.get(), false);
+                    } else {
+                        block.breakNaturally();
+                    }
 
                     if (config.isIncrementBlockStatistics()) {
                         logStatCounts.merge(originalLogType, 1, Integer::sum);
@@ -356,12 +370,15 @@ public class TreeChopUtils {
                 () -> {
                     // After all logs are removed
                     if (config.isIncrementBlockStatistics()) {
-                        logStatCounts.forEach((mat, count) ->
-                                player.incrementStatistic(MINE_BLOCK, mat, count));
+                        logStatCounts.forEach((mat, count) -> player.incrementStatistic(MINE_BLOCK, mat, count));
                     }
 
                     if (config.isToolDamage()) {
                         applyToolDamage(tool, player, totalBlocks, config);
+                    }
+
+                    if (autoPickup) {
+                        DropCollectionUtils.deliverDrops(player, collectedDrops);
                     }
 
                     // Handle leaf removal
@@ -374,6 +391,7 @@ public class TreeChopUtils {
                                     finalLeafSnapshot,
                                     originalBlock.getLocation(),
                                     player,
+                                    tool,
                                     config,
                                     playerConfig,
                                     hooks,
@@ -422,6 +440,7 @@ public class TreeChopUtils {
             BlockSnapshot leafSnapshot,
             Location centerLocation,
             Player player,
+            ItemStack tool,
             Config config,
             PlayerConfig playerConfig,
             ProtectionCheckUtils.ProtectionHooks hooks,
@@ -467,8 +486,8 @@ public class TreeChopUtils {
                 }
 
                 // PHASE 3: Back to sync for removal
-                Runnable removalTask = () ->
-                        executeLeafRemoval(leavesToRemove, player, config, playerConfig, hooks, sessionId, playerKey);
+                Runnable removalTask = () -> executeLeafRemoval(
+                        leavesToRemove, player, tool, config, playerConfig, hooks, sessionId, playerKey);
 
                 scheduler.runTaskAtLocation(centerLocation, removalTask);
 
@@ -494,6 +513,7 @@ public class TreeChopUtils {
     private void executeLeafRemoval(
             Set<Location> leavesToRemove,
             Player player,
+            ItemStack tool,
             Config config,
             PlayerConfig playerConfig,
             ProtectionCheckUtils.ProtectionHooks hooks,
@@ -508,6 +528,8 @@ public class TreeChopUtils {
         List<Location> leafList = new ArrayList<>(leavesToRemove);
         int batchSize = config.getLeafRemovalBatchSize();
         Map<Material, Integer> leafStatCounts = new HashMap<>();
+        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, config);
+        List<ItemStack> collectedDrops = new ArrayList<>();
 
         batchProcessor.processBatchWithTermination(
                 leafList,
@@ -525,15 +547,27 @@ public class TreeChopUtils {
                     Block leafBlock = location.getBlock();
 
                     // Remove the leaf block with all checks
-                    removeLeafBlock(leafBlock, player, config, playerConfig, hooks, leafStatCounts);
+                    removeLeafBlock(
+                            leafBlock,
+                            player,
+                            tool,
+                            config,
+                            playerConfig,
+                            hooks,
+                            leafStatCounts,
+                            autoPickup,
+                            collectedDrops);
 
                     return true; // Continue processing
                 },
                 () -> {
                     // Flush accumulated leaf statistics
                     if (config.isIncrementBlockStatistics()) {
-                        leafStatCounts.forEach((mat, count) ->
-                                player.incrementStatistic(MINE_BLOCK, mat, count));
+                        leafStatCounts.forEach((mat, count) -> player.incrementStatistic(MINE_BLOCK, mat, count));
+                    }
+
+                    if (autoPickup) {
+                        DropCollectionUtils.deliverDrops(player, collectedDrops);
                     }
 
                     // Leaf removal complete - end session
@@ -548,10 +582,13 @@ public class TreeChopUtils {
     private boolean removeLeafBlock(
             Block leafBlock,
             Player player,
+            ItemStack tool,
             Config config,
             PlayerConfig playerConfig,
             ProtectionCheckUtils.ProtectionHooks hooks,
-            Map<Material, Integer> leafStatCounts) {
+            Map<Material, Integer> leafStatCounts,
+            boolean autoPickup,
+            List<ItemStack> collectedDrops) {
 
         Location leafLocation = leafBlock.getLocation();
 
@@ -587,10 +624,14 @@ public class TreeChopUtils {
                 EffectUtils.showLeafRemovalEffect(player, leafBlock);
             }
 
-            if (config.getLeafRemovalDropItems()) {
-                leafBlock.breakNaturally();
-            } else {
+            if (!config.getLeafRemovalDropItems()) {
                 leafBlock.setType(XMaterial.AIR.get(), false);
+            } else if (autoPickup) {
+                // Drops must be read before the block is cleared, otherwise it is already air.
+                DropCollectionUtils.collectDrops(leafBlock, tool, player, collectedDrops);
+                leafBlock.setType(XMaterial.AIR.get(), false);
+            } else {
+                leafBlock.breakNaturally();
             }
 
             if (config.isIncrementBlockStatistics()) {

@@ -45,6 +45,7 @@ public final class MessageKeys {
     public static final String NO_PENDING_CONFIRMATION = "noPendingConfirmation";
     public static final String ALREADY_ENABLED = "alreadyEnabled";
     public static final String ALREADY_DISABLED = "alreadyDisabled";
+    public static final String INVENTORY_FULL = "inventoryFull";
     public static final String ABOUT_HEADER = "aboutHeader";
     public static final String ABOUT_LICENSE = "aboutLicense";
     public static final String ABOUT_GITHUB = "aboutGithub";
