@@ -120,6 +120,13 @@ public class TreeChopUtils {
         return 0;
     }
 
+    private static boolean hasSilkTouch(ItemStack item) {
+        if (item != null && item.hasItemMeta() && item.getItemMeta().hasEnchants()) {
+            return item.getEnchantmentLevel(XEnchantment.SILK_TOUCH.get()) > 0;
+        }
+        return false;
+    }
+
     private static boolean shouldApplyDurabilityLoss(int unbreakingLevel, Config config) {
         if (unbreakingLevel <= 0 || !config.getRespectUnbreaking()) {
             return true;
@@ -382,7 +389,7 @@ public class TreeChopUtils {
                         }
                         block.setType(XMaterial.AIR.get(), false);
                     } else {
-                        block.breakNaturally();
+                        DropCollectionUtils.breakNaturally(block, tool);
                     }
 
                     if (config.isIncrementBlockStatistics()) {
@@ -574,6 +581,9 @@ public class TreeChopUtils {
         int batchSize = config.getLeafRemovalBatchSize();
         Map<Material, Integer> leafStatCounts = new HashMap<>();
         boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, playerConfig, config);
+        // Resolved once per chop rather than per leaf: the tool cannot change mid-removal.
+        boolean dropItems =
+                config.getLeafRemovalDropItems() || (config.getLeafRemovalSilkTouchDrops() && hasSilkTouch(tool));
         List<ItemStack> collectedDrops = new ArrayList<>();
 
         batchProcessor.processBatchWithTermination(
@@ -601,6 +611,7 @@ public class TreeChopUtils {
                             hooks,
                             leafStatCounts,
                             autoPickup,
+                            dropItems,
                             collectedDrops);
 
                     return true; // Continue processing
@@ -633,6 +644,7 @@ public class TreeChopUtils {
             ProtectionCheckUtils.ProtectionHooks hooks,
             Map<Material, Integer> leafStatCounts,
             boolean autoPickup,
+            boolean dropItems,
             List<ItemStack> collectedDrops) {
 
         Location leafLocation = leafBlock.getLocation();
@@ -669,18 +681,21 @@ public class TreeChopUtils {
                 EffectUtils.showLeafRemovalEffect(player, leafBlock);
             }
 
-            if (!config.getLeafRemovalDropItems()) {
+            // Read before the break, like originalLogType on the log side: afterwards the block is
+            // air (or water, for a waterlogged leaf) and every leaf type collapses into one entry.
+            Material leafMaterial = leafBlock.getType();
+
+            if (!dropItems) {
                 leafBlock.setType(XMaterial.AIR.get(), false);
             } else if (autoPickup) {
                 // Drops must be read before the block is cleared, otherwise it is already air.
                 DropCollectionUtils.collectDrops(leafBlock, tool, player, collectedDrops);
                 leafBlock.setType(XMaterial.AIR.get(), false);
             } else {
-                leafBlock.breakNaturally();
+                DropCollectionUtils.breakNaturally(leafBlock, tool);
             }
 
             if (config.isIncrementBlockStatistics()) {
-                Material leafMaterial = leafBlock.getType();
                 leafStatCounts.merge(leafMaterial, 1, Integer::sum);
             }
 
