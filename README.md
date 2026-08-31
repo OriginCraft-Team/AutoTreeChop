@@ -94,7 +94,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | `autotreechop.updatechecker` | Receive update notifications | OP |
 | `autotreechop.replant` | Enable auto replanting | Everyone |
 | `autotreechop.leaves` | Enable leaves removal | Everyone |
-| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | Everyone |
+| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | OP |
 
 ---
 

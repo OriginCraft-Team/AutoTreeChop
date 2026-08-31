@@ -14,8 +14,9 @@ permissions:
     default: true
   autotreechop.leaves:
     default: true
+  # Paid/VIP feature: grant it explicitly, same tier as autotreechop.vip.
   autotreechop.autopickup:
-    default: true
+    default: op
   autotreechop.vip:
     default: op
   autotreechop.updatechecker:
