@@ -355,9 +355,9 @@ public class TreeChopUtils {
 
                     Material originalLogType = block.getType();
 
-                    // Track the lowest Y coordinate log for each type (for proper replanting)
+                    // Track the lowest log of each type (for proper replanting)
                     Location existingLoc = logTypesForReplant.get(originalLogType);
-                    if (existingLoc == null || location.getBlockY() < existingLoc.getBlockY()) {
+                    if (existingLoc == null || isLowerReplantAnchor(location, existingLoc)) {
                         logTypesForReplant.put(originalLogType, location.clone());
                     }
 
@@ -453,6 +453,25 @@ public class TreeChopUtils {
 
                     sessionManager.removeTreeChopLocations(playerUUID, blockList);
                 });
+    }
+
+    /**
+     * Orders candidate replant anchors: lowest Y first, then lowest X, then lowest Z.
+     *
+     * <p>Comparing Y alone is ambiguous for a 2x2 trunk, whose four base logs share the
+     * same Y — the winner would then be whichever log the (unordered) discovery set
+     * happened to yield first, making the recorded anchor a random one of the four
+     * corners and the replanted formation shift with it. Falling back to X and Z makes
+     * the anchor the minimum corner, and above all deterministic.
+     */
+    private static boolean isLowerReplantAnchor(Location candidate, Location current) {
+        if (candidate.getBlockY() != current.getBlockY()) {
+            return candidate.getBlockY() < current.getBlockY();
+        }
+        if (candidate.getBlockX() != current.getBlockX()) {
+            return candidate.getBlockX() < current.getBlockX();
+        }
+        return candidate.getBlockZ() < current.getBlockZ();
     }
 
     /**
