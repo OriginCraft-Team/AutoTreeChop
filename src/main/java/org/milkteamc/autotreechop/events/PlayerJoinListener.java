@@ -40,7 +40,10 @@ public class PlayerJoinListener implements Listener {
         UUID playerUUID = player.getUniqueId();
 
         plugin.getDatabaseManager()
-                .loadPlayerDataAsync(playerUUID, plugin.getPluginConfig().getDefaultTreeChop())
+                .loadPlayerDataAsync(
+                        playerUUID,
+                        plugin.getPluginConfig().getDefaultTreeChop(),
+                        plugin.getPluginConfig().getDefaultAutoPickup())
                 .thenAccept(data -> {
                     PlayerConfig playerConfig = new PlayerConfig(playerUUID, data);
                     plugin.getAllPlayerConfigs().put(playerUUID, playerConfig);
@@ -55,7 +58,12 @@ public class PlayerJoinListener implements Listener {
                     plugin.getLogger()
                             .warning("Failed to load data for player " + player.getName() + ": " + ex.getMessage());
                     DatabaseManager.PlayerData defaultData = new DatabaseManager.PlayerData(
-                            playerUUID, plugin.getPluginConfig().getDefaultTreeChop(), 0, 0, java.time.LocalDate.now());
+                            playerUUID,
+                            plugin.getPluginConfig().getDefaultTreeChop(),
+                            plugin.getPluginConfig().getDefaultAutoPickup(),
+                            0,
+                            0,
+                            java.time.LocalDate.now());
                     PlayerConfig fallback = new PlayerConfig(playerUUID, defaultData);
                     plugin.getAllPlayerConfigs().put(playerUUID, fallback);
                     // Default is disabled, so no markRejoin needed here.

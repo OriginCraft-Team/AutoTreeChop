@@ -43,6 +43,10 @@ public final class MessageKeys {
     public static final String CONFIRMATION_REQUIRED_BOTH = "confirmationRequiredBoth";
     public static final String CONFIRMATION_SUCCESS = "confirmationSuccess";
     public static final String NO_PENDING_CONFIRMATION = "noPendingConfirmation";
+    public static final String AUTO_PICKUP_ENABLED = "autoPickupEnabled";
+    public static final String AUTO_PICKUP_DISABLED = "autoPickupDisabled";
+    public static final String AUTO_PICKUP_UNAVAILABLE = "autoPickupUnavailable";
+
     public static final String ALREADY_ENABLED = "alreadyEnabled";
     public static final String ALREADY_DISABLED = "alreadyDisabled";
     public static final String INVENTORY_FULL = "inventoryFull";

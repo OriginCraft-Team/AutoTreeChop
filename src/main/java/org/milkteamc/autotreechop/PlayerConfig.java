@@ -52,6 +52,17 @@ public class PlayerConfig {
         }
     }
 
+    public boolean isAutoPickupEnabled() {
+        return data.isAutoPickupEnabled();
+    }
+
+    public void setAutoPickupEnabled(boolean enabled) {
+        if (data.isAutoPickupEnabled() != enabled) {
+            data.setAutoPickupEnabled(enabled);
+            markDirty();
+        }
+    }
+
     public int getDailyUses() {
         checkAndUpdateDate();
         return data.getDailyUses();

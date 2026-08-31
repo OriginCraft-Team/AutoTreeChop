@@ -90,7 +90,10 @@ increment-block-statistics: false
 # Respects the tool used and its enchantments (Fortune, Silk Touch), just like a normal block break.
 # Items that do not fit are dropped at the player's feet.
 # Also requires the "autotreechop.autopickup" permission.
+# Players can turn it off for themselves with "/atc autopickup"; that choice is saved per player.
 enable-auto-pickup: false
+# Set the auto pickup state new players start with (only matters when enable-auto-pickup is true).
+defaultAutoPickup: true
 
 # Protection plugins setting
 # If you are using Residence, you can set which Flag players have access to AutoTreeChop in residence.

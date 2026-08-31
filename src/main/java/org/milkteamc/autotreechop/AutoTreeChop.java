@@ -302,7 +302,7 @@ public class AutoTreeChop extends JavaPlugin {
             getLogger().warning("PlayerConfig not found for " + playerUUID + ", loading synchronously");
             try {
                 DatabaseManager.PlayerData data = databaseManager
-                        .loadPlayerDataAsync(playerUUID, config.getDefaultTreeChop())
+                        .loadPlayerDataAsync(playerUUID, config.getDefaultTreeChop(), config.getDefaultAutoPickup())
                         .get();
 
                 playerConfig = new PlayerConfig(playerUUID, data);
@@ -310,7 +310,12 @@ public class AutoTreeChop extends JavaPlugin {
             } catch (Exception e) {
                 getLogger().warning("Failed to load player data: " + e.getMessage());
                 DatabaseManager.PlayerData defaultData = new DatabaseManager.PlayerData(
-                        playerUUID, config.getDefaultTreeChop(), 0, 0, java.time.LocalDate.now());
+                        playerUUID,
+                        config.getDefaultTreeChop(),
+                        config.getDefaultAutoPickup(),
+                        0,
+                        0,
+                        java.time.LocalDate.now());
                 playerConfig = new PlayerConfig(playerUUID, defaultData);
                 playerConfigs.put(playerUUID, playerConfig);
             }
