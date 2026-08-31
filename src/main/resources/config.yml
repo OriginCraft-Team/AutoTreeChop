@@ -89,7 +89,8 @@ increment-block-statistics: false
 # Put chopped blocks straight into the player's inventory instead of dropping them on the ground.
 # Respects the tool used and its enchantments (Fortune, Silk Touch), just like a normal block break.
 # Items that do not fit are dropped at the player's feet.
-# Also requires the "autotreechop.autopickup" permission.
+# Also requires the "autotreechop.autopickup" permission, which is not granted to everyone by
+# default — give it to the ranks that should have the feature.
 # Players can turn it off for themselves with "/atc autopickup"; that choice is saved per player.
 enable-auto-pickup: false
 # Set the auto pickup state new players start with (only matters when enable-auto-pickup is true).

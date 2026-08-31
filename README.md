@@ -87,14 +87,14 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 
 | Permission | Description | Default |
 |------------|-------------|-------------|
-| `autotreechop.use` | Use `/atc`, `/atc confirm`, and `/atc usage` commands | Everyone |
+| `autotreechop.use` | Use `/atc`, `/atc confirm`, `/atc usage`, and `/atc autopickup` commands | Everyone |
 | `autotreechop.vip` | Ignore usage limits | OP |
 | `autotreechop.other` | Toggle others' ATC status | OP |
 | `autotreechop.reload` | Reload config file | OP |
 | `autotreechop.updatechecker` | Receive update notifications | OP |
 | `autotreechop.replant` | Enable auto replanting | Everyone |
 | `autotreechop.leaves` | Enable leaves removal | Everyone |
-| `autotreechop.autopickup` | Collect chopped drops straight into the inventory, and use `/atc autopickup` | Everyone |
+| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | OP |
 
 ---
 
@@ -107,6 +107,23 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | `%autotreechop_status%` | Whether ATC is enabled |
 | `%autotreechop_daily_uses%` | Times used today |
 | `%autotreechop_daily_blocks_broken%` | Tree blocks chopped today |
+
+---
+
+## Message styling
+
+Every chat message in `plugins/AutoTreeChop/lang/*.properties` is wrapped in one of two tags:
+`<prefix>` for success and information, `<prefix_negative>` for refusals, limits and warnings.
+Both are defined in `lang/styles.properties`, so a server prefix or a different colour scheme is
+a one-file change instead of an edit to every translation:
+
+```properties
+prefix=<dark_gray>[</dark_gray><green>MyServer</green><dark_gray>]</dark_gray> <text>{slot}</text>
+prefix_negative=<dark_gray>[</dark_gray><green>MyServer</green><dark_gray>]</dark_gray> <negative>{slot}</negative>
+```
+
+`{slot}` is the message text, and the values are [MiniMessage](https://docs.advntr.dev/minimessage/format.html).
+Run `/atc reload` to apply changes.
 
 ---
 

@@ -186,20 +186,32 @@ public class ToggleCommand {
      * Flips the player's own auto pickup preference. The preference is stored per player and
      * persists across sessions, exactly like the AutoTreeChop toggle above.
      *
-     * <p>Toggling is refused when auto pickup cannot take effect anyway — the server disabled it
-     * in config.yml, or the player lacks {@code autotreechop.autopickup} — so a player never ends
-     * up with a stored "on" that silently does nothing.
+     * <p>Gated on {@code autotreechop.use} rather than {@code autotreechop.autopickup} on purpose:
+     * a player without the auto pickup permission should be told they may not use the feature,
+     * not have the subcommand disappear from tab completion and answer "unknown command".
+     * The real permission is checked in the body so the refusal is an explicit message.
+     *
+     * <p>Toggling is also refused when auto pickup cannot take effect anyway — the server
+     * disabled it in config.yml — so a player never ends up with a stored "on" that silently
+     * does nothing. That server-wide state is checked first: when the feature is off for
+     * everyone, "auto pickup is disabled on this server" is the honest answer, and telling a
+     * player they lack the permission would point them at the wrong thing.
      */
     @Subcommand({"autopickup", "pickup"})
-    @CommandPermission("autotreechop.autopickup")
+    @CommandPermission("autotreechop.use")
     public void autoPickup(BukkitCommandActor actor) {
+        if (!plugin.getPluginConfig().isAutoPickupEnabled()) {
+            AutoTreeChop.sendMessage(actor.sender(), MessageKeys.AUTO_PICKUP_UNAVAILABLE);
+            return;
+        }
+
         if (!(actor.sender() instanceof Player player)) {
             AutoTreeChop.sendMessage(actor.sender(), MessageKeys.ONLY_PLAYERS);
             return;
         }
 
-        if (!plugin.getPluginConfig().isAutoPickupEnabled()) {
-            AutoTreeChop.sendMessage(player, MessageKeys.AUTO_PICKUP_UNAVAILABLE);
+        if (!player.hasPermission("autotreechop.autopickup")) {
+            AutoTreeChop.sendMessage(player, MessageKeys.NO_PERMISSION);
             return;
         }
 
