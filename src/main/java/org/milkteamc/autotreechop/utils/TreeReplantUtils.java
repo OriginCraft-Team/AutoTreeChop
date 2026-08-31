@@ -65,11 +65,16 @@ public class TreeReplantUtils {
         }
 
         Location originalLocation = brokenLogBlock.getLocation().clone();
-        boolean needs2x2 = isLikely2x2Tree(originalLogType, originalLocation, choppedLogs);
+
+        // Minimum-corner anchor of the 2x2 trunk that was actually chopped, derived from the real
+        // footprint instead of being guessed from an arbitrary corner. Null when the tree was not a
+        // 2x2, or when its base was only partially removed (protection plugin, max-tree-size cut-off).
+        Location exactAnchor = find2x2FootprintAnchor(originalLogType, originalLocation, choppedLogs);
+        boolean needs2x2 = exactAnchor != null || isAlways2x2(originalLogType);
 
         Runnable replantTask = () -> {
             if (needs2x2) {
-                Location anchorLocation = find2x2PlantLocation(originalLocation, config);
+                Location anchorLocation = resolve2x2Anchor(exactAnchor, originalLocation, config);
                 if (anchorLocation == null) {
                     return;
                 }
@@ -130,30 +135,49 @@ public class TreeReplantUtils {
     }
 
     /**
-     * Determines whether the chopped tree should be replanted as a 2x2 sapling
-     * formation.
-     *
-     * <p>Dark Oak and Pale Oak are always 2x2. Spruce and Jungle are 2x2 only when
-     * the base of the chopped tree contained four logs arranged in a 2x2 square —
-     * detected by scanning the chopped-log set for a matching pattern at the Y
-     * level of the lowest broken log. All other tree types are always single.
+     * Returns {@code true} for log types that are always replanted as a 2x2
+     * formation regardless of what was chopped.
      */
-    private static boolean isLikely2x2Tree(Material logType, Location lowestLogLocation, Set<Location> choppedLogs) {
-
+    private static boolean isAlways2x2(Material logType) {
         XMaterial xMat = XMaterial.matchXMaterial(logType);
+        return xMat == XMaterial.DARK_OAK_LOG || xMat == XMaterial.PALE_OAK_LOG;
+    }
 
-        // Dark Oak and Pale Oak are always planted as 2x2
-        if (xMat == XMaterial.DARK_OAK_LOG || xMat == XMaterial.PALE_OAK_LOG) {
-            return true;
+    /**
+     * Returns {@code true} for log types that can form a 2x2 trunk at all. Every
+     * other type is always replanted as a single sapling.
+     */
+    private static boolean canBe2x2(Material logType) {
+        XMaterial xMat = XMaterial.matchXMaterial(logType);
+        return xMat == XMaterial.DARK_OAK_LOG
+                || xMat == XMaterial.PALE_OAK_LOG
+                || xMat == XMaterial.SPRUCE_LOG
+                || xMat == XMaterial.JUNGLE_LOG;
+    }
+
+    /**
+     * Finds the exact minimum-corner anchor of the 2x2 trunk that was chopped, by
+     * scanning the chopped-log set for four logs forming a square at the Y level of
+     * the lowest broken log.
+     *
+     * <p>The anchor is unique: for a given 2x2 footprint only its minimum corner
+     * makes all four positions match. Returning the anchor rather than a boolean is
+     * what keeps the replanted saplings aligned with the trunk that was removed —
+     * {@code lowestLogLocation} may be any of the four corners, so deriving the
+     * formation from it by assuming it is the minimum corner shifts the saplings by
+     * up to one block on each axis.
+     *
+     * <p>Returns null when the tree is not a 2x2 type, or when its base was not
+     * fully chopped (a protection plugin denied a block, or the max-tree-size limit
+     * was hit), in which case callers fall back to searching for a suitable spot.
+     */
+    private static Location find2x2FootprintAnchor(
+            Material logType, Location lowestLogLocation, Set<Location> choppedLogs) {
+
+        if (!canBe2x2(logType)) {
+            return null;
         }
 
-        // Only Spruce and Jungle can be big (2x2) trees — everything else is always single
-        if (xMat != XMaterial.SPRUCE_LOG && xMat != XMaterial.JUNGLE_LOG) {
-            return false;
-        }
-
-        // Detect 2x2 by checking whether four logs of this type form a square at
-        // the base Y level among the actually-chopped blocks.
         int baseY = lowestLogLocation.getBlockY();
         int baseX = lowestLogLocation.getBlockX();
         int baseZ = lowestLogLocation.getBlockZ();
@@ -172,11 +196,24 @@ public class TreeReplantUtils {
                 }
             }
             if (all4Present) {
-                return true;
+                return new Location(world, ax, baseY, az);
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * Picks the anchor to plant the 2x2 formation at, preferring the exact footprint
+     * of the chopped trunk and only searching for an alternative when that footprint
+     * is no longer plantable (uneven ground, a block placed in the meantime, or no
+     * footprint detected at all).
+     */
+    private static Location resolve2x2Anchor(Location exactAnchor, Location originalLocation, Config config) {
+        if (exactAnchor != null && is2x2FormationValid(exactAnchor.getBlock(), config)) {
+            return exactAnchor;
+        }
+        return find2x2PlantLocation(originalLocation, config);
     }
 
     /**
