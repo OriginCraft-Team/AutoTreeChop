@@ -89,6 +89,7 @@ public class Config {
     private long leafRemovalDelayTicks;
     private int leafRemovalRadius;
     private boolean leafRemovalDropItems;
+    private boolean leafRemovalSilkTouchDrops;
     private boolean leafRemovalVisualEffects;
     private boolean leafRemovalAsync;
     private int leafRemovalBatchSize;
@@ -243,6 +244,7 @@ public class Config {
         leafRemovalDelayTicks = config.getLong("leaf-removal-delay-ticks", 5L);
         leafRemovalRadius = config.getInt("leaf-removal-radius", 10);
         leafRemovalDropItems = config.getBoolean("leaf-removal-drop-items", false);
+        leafRemovalSilkTouchDrops = config.getBoolean("leaf-removal-silk-touch-drops", true);
         leafRemovalVisualEffects = config.getBoolean("leaf-removal-visual-effects", true);
         leafRemovalAsync = config.getBoolean("leaf-removal-async", true);
         leafRemovalBatchSize = config.getInt("leaf-removal-batch-size", 20);
@@ -501,6 +503,10 @@ public class Config {
 
     public boolean getLeafRemovalDropItems() {
         return leafRemovalDropItems;
+    }
+
+    public boolean getLeafRemovalSilkTouchDrops() {
+        return leafRemovalSilkTouchDrops;
     }
 
     public boolean getLeafRemovalVisualEffects() {

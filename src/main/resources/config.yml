@@ -133,6 +133,10 @@ leaf-removal-delay-ticks: 5
 leaf-removal-radius: 10
 # Whether removed leaves should drop items
 leaf-removal-drop-items: false
+# Whether leaves broken with a Silk Touch tool should drop the leaf block itself.
+# Independent of leaf-removal-drop-items, so leaves can keep vanishing for everyone else
+# while Silk Touch still behaves the way it does in vanilla.
+leaf-removal-silk-touch-drops: true
 # Show particle effects when removing leaves
 leaf-removal-visual-effects: true
 # Process leaf removal asynchronously
