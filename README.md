@@ -87,14 +87,14 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 
 | Permission | Description | Default |
 |------------|-------------|-------------|
-| `autotreechop.use` | Use `/atc`, `/atc confirm`, and `/atc usage` commands | Everyone |
+| `autotreechop.use` | Use `/atc`, `/atc confirm`, `/atc usage`, and `/atc autopickup` commands | Everyone |
 | `autotreechop.vip` | Ignore usage limits | OP |
 | `autotreechop.other` | Toggle others' ATC status | OP |
 | `autotreechop.reload` | Reload config file | OP |
 | `autotreechop.updatechecker` | Receive update notifications | OP |
 | `autotreechop.replant` | Enable auto replanting | Everyone |
 | `autotreechop.leaves` | Enable leaves removal | Everyone |
-| `autotreechop.autopickup` | Collect chopped drops straight into the inventory, and use `/atc autopickup` | Everyone |
+| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | Everyone |
 
 ---
 
