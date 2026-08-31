@@ -88,6 +88,22 @@ public final class DropCollectionUtils {
     }
 
     /**
+     * Breaks a block and lets its drops fall on the ground, honouring the tool the player is
+     * actually holding.
+     *
+     * <p>Counterpart to {@link #collectDrops} for players without auto pickup. Both must treat the
+     * tool the same way, otherwise the same enchanted axe yields different items depending on a
+     * setting that is only supposed to decide where the drops end up, not what they are.
+     */
+    public static void breakNaturally(Block block, ItemStack tool) {
+        if (tool == null || XMaterial.matchXMaterial(tool) == XMaterial.AIR) {
+            block.breakNaturally();
+        } else {
+            block.breakNaturally(tool);
+        }
+    }
+
+    /**
      * Puts everything collected into the player's inventory. Whatever does not fit is dropped at
      * the player's feet and the player is told once (rate limited, because logs and leaves are
      * delivered in two separate phases).

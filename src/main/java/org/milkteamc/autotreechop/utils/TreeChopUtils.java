@@ -382,7 +382,7 @@ public class TreeChopUtils {
                         }
                         block.setType(XMaterial.AIR.get(), false);
                     } else {
-                        block.breakNaturally();
+                        DropCollectionUtils.breakNaturally(block, tool);
                     }
 
                     if (config.isIncrementBlockStatistics()) {
@@ -676,7 +676,7 @@ public class TreeChopUtils {
                 DropCollectionUtils.collectDrops(leafBlock, tool, player, collectedDrops);
                 leafBlock.setType(XMaterial.AIR.get(), false);
             } else {
-                leafBlock.breakNaturally();
+                DropCollectionUtils.breakNaturally(leafBlock, tool);
             }
 
             if (config.isIncrementBlockStatistics()) {
