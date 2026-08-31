@@ -193,11 +193,18 @@ public class ToggleCommand {
      *
      * <p>Toggling is also refused when auto pickup cannot take effect anyway — the server
      * disabled it in config.yml — so a player never ends up with a stored "on" that silently
-     * does nothing.
+     * does nothing. That server-wide state is checked first: when the feature is off for
+     * everyone, "auto pickup is disabled on this server" is the honest answer, and telling a
+     * player they lack the permission would point them at the wrong thing.
      */
     @Subcommand({"autopickup", "pickup"})
     @CommandPermission("autotreechop.use")
     public void autoPickup(BukkitCommandActor actor) {
+        if (!plugin.getPluginConfig().isAutoPickupEnabled()) {
+            AutoTreeChop.sendMessage(actor.sender(), MessageKeys.AUTO_PICKUP_UNAVAILABLE);
+            return;
+        }
+
         if (!(actor.sender() instanceof Player player)) {
             AutoTreeChop.sendMessage(actor.sender(), MessageKeys.ONLY_PLAYERS);
             return;
@@ -205,11 +212,6 @@ public class ToggleCommand {
 
         if (!player.hasPermission("autotreechop.autopickup")) {
             AutoTreeChop.sendMessage(player, MessageKeys.NO_PERMISSION);
-            return;
-        }
-
-        if (!plugin.getPluginConfig().isAutoPickupEnabled()) {
-            AutoTreeChop.sendMessage(player, MessageKeys.AUTO_PICKUP_UNAVAILABLE);
             return;
         }
 
