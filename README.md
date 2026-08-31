@@ -110,6 +110,23 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 
 ---
 
+## Message styling
+
+Every chat message in `plugins/AutoTreeChop/lang/*.properties` is wrapped in one of two tags:
+`<prefix>` for success and information, `<prefix_negative>` for refusals, limits and warnings.
+Both are defined in `lang/styles.properties`, so a server prefix or a different colour scheme is
+a one-file change instead of an edit to every translation:
+
+```properties
+prefix=<dark_gray>[</dark_gray><green>MyServer</green><dark_gray>]</dark_gray> <text>{slot}</text>
+prefix_negative=<dark_gray>[</dark_gray><green>MyServer</green><dark_gray>]</dark_gray> <negative>{slot}</negative>
+```
+
+`{slot}` is the message text, and the values are [MiniMessage](https://docs.advntr.dev/minimessage/format.html).
+Run `/atc reload` to apply changes.
+
+---
+
 ## Support & Contribute
 
 - Need help? Join our [Matrix](https://matrix.to/#/#maoyue-dev:matrix.org)
