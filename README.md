@@ -71,6 +71,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 |--------|-------------|
 | `/atc` | Toggle AutoTreeChop |
 | `/atc confirm` | Confirm a pending chop (idle / no-leaves warning) |
+| `/atc autopickup` | Toggle auto pickup of chopped drops for yourself |
 | `/atc usage` | Show daily usage |
 | `/atc reload` | Reload plugin config |
 | `/atc toggle <player>` | Toggle for another player |
@@ -93,7 +94,7 @@ It's async-friendly, lightweight, and fully customizable — with built-in suppo
 | `autotreechop.updatechecker` | Receive update notifications | OP |
 | `autotreechop.replant` | Enable auto replanting | Everyone |
 | `autotreechop.leaves` | Enable leaves removal | Everyone |
-| `autotreechop.autopickup` | Collect chopped drops straight into the inventory | Everyone |
+| `autotreechop.autopickup` | Collect chopped drops straight into the inventory, and use `/atc autopickup` | Everyone |
 
 ---
 

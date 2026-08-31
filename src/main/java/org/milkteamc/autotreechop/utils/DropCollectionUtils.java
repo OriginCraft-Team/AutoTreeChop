@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.milkteamc.autotreechop.AutoTreeChop;
 import org.milkteamc.autotreechop.Config;
 import org.milkteamc.autotreechop.MessageKeys;
+import org.milkteamc.autotreechop.PlayerConfig;
 
 /**
  * Collects the drops of blocks broken by AutoTreeChop and hands them straight to the player
@@ -52,11 +53,14 @@ public final class DropCollectionUtils {
     private DropCollectionUtils() {}
 
     /**
-     * Auto pickup requires both the config flag and the permission node, following the same
-     * pattern as {@link TreeReplantUtils#isReplantEnabledForPlayer(Player, Config)}.
+     * Auto pickup requires the config flag, the permission node and the player's own toggle
+     * (persisted per player, flipped with {@code /atc autopickup}), following the same pattern as
+     * {@link TreeReplantUtils#isReplantEnabledForPlayer(Player, Config)}.
      */
-    public static boolean isAutoPickupEnabledForPlayer(Player player, Config config) {
-        return config.isAutoPickupEnabled() && player.hasPermission("autotreechop.autopickup");
+    public static boolean isAutoPickupEnabledForPlayer(Player player, PlayerConfig playerConfig, Config config) {
+        return config.isAutoPickupEnabled()
+                && player.hasPermission("autotreechop.autopickup")
+                && playerConfig.isAutoPickupEnabled();
     }
 
     /**

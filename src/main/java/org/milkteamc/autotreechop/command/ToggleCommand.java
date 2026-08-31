@@ -182,6 +182,34 @@ public class ToggleCommand {
         }
     }
 
+    /**
+     * Flips the player's own auto pickup preference. The preference is stored per player and
+     * persists across sessions, exactly like the AutoTreeChop toggle above.
+     *
+     * <p>Toggling is refused when auto pickup cannot take effect anyway — the server disabled it
+     * in config.yml, or the player lacks {@code autotreechop.autopickup} — so a player never ends
+     * up with a stored "on" that silently does nothing.
+     */
+    @Subcommand({"autopickup", "pickup"})
+    @CommandPermission("autotreechop.autopickup")
+    public void autoPickup(BukkitCommandActor actor) {
+        if (!(actor.sender() instanceof Player player)) {
+            AutoTreeChop.sendMessage(actor.sender(), MessageKeys.ONLY_PLAYERS);
+            return;
+        }
+
+        if (!plugin.getPluginConfig().isAutoPickupEnabled()) {
+            AutoTreeChop.sendMessage(player, MessageKeys.AUTO_PICKUP_UNAVAILABLE);
+            return;
+        }
+
+        PlayerConfig playerConfig = plugin.getPlayerConfig(player.getUniqueId());
+        boolean enabled = !playerConfig.isAutoPickupEnabled();
+        playerConfig.setAutoPickupEnabled(enabled);
+
+        AutoTreeChop.sendMessage(player, enabled ? MessageKeys.AUTO_PICKUP_ENABLED : MessageKeys.AUTO_PICKUP_DISABLED);
+    }
+
     private void performSelfToggle(BukkitCommandActor actor) {
         if (!(actor.sender() instanceof Player player)) {
             AutoTreeChop.sendMessage(actor.sender(), MessageKeys.ONLY_PLAYERS);

@@ -333,7 +333,7 @@ public class TreeChopUtils {
         int finalLeafRadius = leafRadius;
 
         Map<Material, Integer> logStatCounts = new HashMap<>();
-        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, config);
+        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, playerConfig, config);
         List<ItemStack> collectedDrops = new ArrayList<>();
 
         batchProcessor.processBatch(
@@ -573,7 +573,7 @@ public class TreeChopUtils {
         List<Location> leafList = new ArrayList<>(leavesToRemove);
         int batchSize = config.getLeafRemovalBatchSize();
         Map<Material, Integer> leafStatCounts = new HashMap<>();
-        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, config);
+        boolean autoPickup = DropCollectionUtils.isAutoPickupEnabledForPlayer(player, playerConfig, config);
         List<ItemStack> collectedDrops = new ArrayList<>();
 
         batchProcessor.processBatchWithTermination(
