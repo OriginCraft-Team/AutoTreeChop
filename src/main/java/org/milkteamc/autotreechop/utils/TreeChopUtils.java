@@ -681,6 +681,10 @@ public class TreeChopUtils {
                 EffectUtils.showLeafRemovalEffect(player, leafBlock);
             }
 
+            // Read before the break, like originalLogType on the log side: afterwards the block is
+            // air (or water, for a waterlogged leaf) and every leaf type collapses into one entry.
+            Material leafMaterial = leafBlock.getType();
+
             if (!dropItems) {
                 leafBlock.setType(XMaterial.AIR.get(), false);
             } else if (autoPickup) {
@@ -692,7 +696,6 @@ public class TreeChopUtils {
             }
 
             if (config.isIncrementBlockStatistics()) {
-                Material leafMaterial = leafBlock.getType();
                 leafStatCounts.merge(leafMaterial, 1, Integer::sum);
             }
 
